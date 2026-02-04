@@ -1,0 +1,15 @@
+-------------create---------------
+py -m venv venv
+
+-----------activate venv----------------
+.\venv\Scripts\activate
+
+--------------install flask-------------
+pip install flask
+
+------------save dependencies to a txt-----------
+pip freeze > requirements.txt
+
+
+-----------install SQLite3----------------
+winget install SQLite.SQLite
