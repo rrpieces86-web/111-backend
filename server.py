@@ -155,6 +155,12 @@ def create_expenses():
     category = data.get("category")
     user_id = data.get("user_id")
 
+    if not data:
+        return jsonify({
+            "success":False,
+            "message":"no data  found to create expense"
+        }), 400
+
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute("INSERT INTO expenses (title, description, amount, date, category, user_id) VALUES (?, ?, ?, ?, ?, ?)", (title, description, amount, date, category, user_id))
@@ -164,6 +170,111 @@ def create_expenses():
         "success":True,
         "message":"expense logged successfully"
     }), 201
+
+@app.get("/api/expenses")
+def get_expenses():
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, title, category, user_id FROM expenses")
+    rows = cursor.fetchall()
+    print(rows)
+    conn.close()
+
+    expenses = []
+    for row in rows:
+        expense = {"id":row["id"], "title":row["title"], "category":row["category"], "user_id":row["user_id"]}
+        expenses.append(expense)
+    return jsonify({
+        "success":True,
+        "message":"expenses retrieved",
+        "data":expenses
+    }), 200
+
+@app.get("/api/expenses/<int:expense_id>")
+def get_expense(expense_id):
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM expenses WHERE id=?", (expense_id,))
+    row = cursor.fetchone()
+    conn.close()
+    print(row)
+    
+
+    if not row:
+        return jsonify({
+            "success":False,
+            "message":"expense not found"
+        }), 404
+    
+    return jsonify({
+        "success":True,
+        "message":"expense retrieved",
+        "data":dict(row)
+    }), 200
+
+@app.delete("/api/expenses/<int:expense_id>")
+def delete_expense_by_id(expense_id):
+    conn = sqlite3.connect(DB_NAME)
+    cursor =  conn.cursor()
+    cursor.execute("SELECT * FROM expenses WHERE id=?", (expense_id,))
+    if not cursor.fetchone():
+        conn.close()
+        return jsonify({
+            "success":False,
+            "message":"expense not found"
+        }), 404
+    cursor.execute("DELETE FROM expenses WHERE id=?", (expense_id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "success":True,
+        "message":"user deleted successfully"
+    }), 200
+
+
+@app.put("/api/expenses/<int:expense_id>")
+def update_expense_by_id(expense_id):
+    data = request.get_json()
+    title = data.get("title")
+    description = data.get("description")
+    amount = data.get("amount")
+    date_str = data.get("date")
+    category = data.get("category")
+    user_id = data.get("user_id")
+
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("""
+            UPDATE expenses
+            SET title=?, description=?, amount=?, date=?, category=?, user_id=?
+            WHERE id=?
+        """, (title, description, amount, date_str, category, user_id, expense_id))
+        conn.commit()
+
+        return jsonify({
+            "success":True,
+            "message":"expense updated sucessfully"
+        }), 200
+    except sqlite3.IntegrityError as e:
+        #integrityerror is most likely when an attribute has any specific options
+
+        return jsonify({
+            "error":f"something went wrong: {str(e)}"
+        }), 400
+    except sqlite3.OperationalError as e:
+        #OperationalError wraps sql syntax errors, missing table/column
+        return jsonify({"error":f"database operational error: {str(e)}"}), 500
+    except sqlite3.DatabaseError as e:
+        #DatabaseError is for general database errors
+        return jsonify({"error":f"Database error {str(e)}"})
+    finally:
+        conn.close()
+
 
 
 if __name__ == "__main__":
