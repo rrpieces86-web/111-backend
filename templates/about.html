@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}
+about me 
+{% endblock %}
+
+{% block content %}
+    <div class="bg-warning-subtle">
+        <h1 class="d-flex justify-content-center">about me</h1>
+        <h3>{{ name }}</h3>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Facilis, at asperiores nulla vero minus cum facere, dolores et tenetur nemo porro iure recusandae odio. Commodi sit facilis ea! Earum, animi!</p>
+        <p><strong>hobbies:</strong></p>
+        <ul>
+            {% for item in hobbies %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+
+    </div>
+    {% endblock %}

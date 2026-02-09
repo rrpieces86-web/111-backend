@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}
+contact
+{% endblock %}
+
+{% block content %}
+<div>
+    <h1 class="d-flex justify-content-center">contact info</h1>
+</div>
+<div>
+    {% for info in contact_info %}
+    <p class="d-flex justify-content-center">{{ info }}: {{ contact_info[info] }}</p>
+    {% endfor %}
+</div>
+{% endblock %}
